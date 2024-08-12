@@ -1,10 +1,8 @@
 const service = require("./service");
 
 const createUser = async (req, res) => {
-  console.log("req=>", req.body);
   try {
     const auth0User = await service.createUser(req.body);
-    console.log("auth0User==>>>>", auth0User); // create new user in auth0
     return res.send({
       message: "User details added successfully",
       data: auth0User,
@@ -15,10 +13,8 @@ const createUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  console.log("req=>", req.body);
   try {
     const tokens = await service.loginUser(req.body);
-    console.log("tokens==>>>>", tokens); // login the user and get tokens
     return res.send({
       message: "User logged in successfully",
       data: tokens,
@@ -28,7 +24,27 @@ const loginUser = async (req, res) => {
   }
 };
 
+async function refreshAccessTokenController(req, res) {
+  const { refreshToken } = req.body;
+  console.log("refreshToken==>>>", refreshToken);
+
+  if (!refreshToken) {
+    return res.status(400).json({ error: "Refresh token is required" });
+  }
+
+  try {
+    const tokens = await service.createAccessTokenUsingRefreshToken(
+      refreshToken
+    );
+    console.log("tokens==>>", tokens);
+    return res.status(200).json(tokens);
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to refresh access token" });
+  }
+}
+
 module.exports = {
   createUser,
+  refreshAccessTokenController,
   loginUser,
 };
